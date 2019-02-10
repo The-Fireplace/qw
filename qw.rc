@@ -43,6 +43,8 @@
 : QUIT_TURNS = 1000
 # use a shield at all cost
 : SHIELD_CRAZY = true
+# Should we use might/haste potions more freely?
+: INCREASED_POTION_USE = true
 
 # acceptable gods (join whichever one we find first)
 # gods who have been at least partially implemented: BCHLMOQRTUXY1
@@ -3397,6 +3399,14 @@ function buffed()
   return false
 end
 
+-- Do we have any buff active?
+function any_buff()
+  return you.mighty() or you.hasted() or
+    you.berserk() or transformed() or
+    you.status("heroism") or you.status("finesse")
+    -- TODO: complete
+end
+
 function should_ally_rest()
   if you.god() ~= "Yredelemnul" and you.god() ~= "Beogh" then
     return false
@@ -4227,6 +4237,24 @@ function plan_other_step()
   return false
 end
 
+-- We can't berserk, but we want a buff
+function plan_fallback_buff()
+  if not want_fallback_buff() then
+    return false
+  end
+  if drink_by_name("might") then
+    say("(Quaffed as a fallback buff.)")
+    return true
+  elseif drink_by_name("haste") then
+    say("(Quaffed as a fallback buff.)")
+    return true
+  elseif drink_by_name("agility") then
+    say("(Quaffed as a fallback buff.)")
+    return true
+  end
+  return false
+end
+
 function plan_berserk()
   if can_berserk() and want_to_berserk() then
     berserk()
@@ -4508,6 +4536,11 @@ function want_to_berserk()
           (you.race() ~= "Deep Dwarf" or dd_want_to_heal_wounds()) or
           check_monsters(2, scary_monsters) or
           (invisi_sigmund and not options.autopick_on))
+end
+
+function want_fallback_buff()
+  return INCREASED_POTION_USE and check_monsters(5, scary_monsters) and
+    not you.mighty() and not you.hasted() and not you.berserk()
 end
 
 function want_to_heroism()
@@ -5147,7 +5180,7 @@ function plan_use_id_scrolls()
   local count = 0
   for it in inventory() do
     if it.class(true) == "wand" and not it.fully_identified and
-       (it.name():find("empty") or 
+       (it.name():find("empty") or
         it.name():find("digging")
         and (where:find("Depths") or where:find("Zot"))) then
       oldname = it.name()
@@ -7713,6 +7746,7 @@ plan_emergency = cascade {
   {plan_might, "might"},
   {plan_blinking, "blinking"},
   {plan_berserk, "berserk"},
+  {plan_fallback_buff, "fallback_buff"},
   {plan_continue_flee, "continue_flee"},
   {plan_other_step, "other_step"},
 } -- hack
