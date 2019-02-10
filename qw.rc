@@ -1305,7 +1305,7 @@ function want_potion(it)
   end
   if sub ~= "curing" and sub ~= "heal wounds" and sub ~= "haste"
      and sub ~= "resistance" and sub ~= "experience" and sub ~= "might"
-     and sub ~= "mutation" and sub ~= "cancellation" then
+     and sub ~= "mutation" and sub ~= "cancellation" and sub ~= "agility" then
     return false
   end
   return true
