@@ -39,6 +39,8 @@
 : SINGLE_STEP = false
 # panic (stop) at full inventory
 : FULL_INVENTORY_PANIC = true
+# Quit if we panic. Useful with batch testing
+: QUIT_ON_PANIC = false
 # quit after this number of turns while stuck
 : QUIT_TURNS = 1000
 # use a shield at all cost
@@ -8316,6 +8318,10 @@ end
 
 function panic(msg)
   crawl.mpr("<lightred>" .. msg .. "</lightred>")
+  if QUIT_ON_PANIC then
+    magic(control('q') .. "yes\r")
+    return true
+  end
   stop()
 end
 
