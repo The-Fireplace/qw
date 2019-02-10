@@ -4972,6 +4972,8 @@ function vp_handle_corpses()
   return true
 end
 
+-- Sometimes this function fails because we are standing on a corpse which
+-- hasn't been autoinscribed for some reason.
 function plan_handle_corpses()
   if not on_corpses() then
     return false
@@ -7815,7 +7817,7 @@ plan_eatrest = cascade {
   {plan_dd_hand_for_healing, "dd_hand_for_healing"},
   --{plan_easy_rest, "try_easy_rest"},
   {plan_rest, "rest"},
-  {plan_handle_corpses, "handle_corpses"},
+  {plan_handle_corpses, "try_handle_corpses"},
   {plan_find_corpses, "try_find_corpses"},
   {plan_eat_anyway, "eat_anyway"},
 } -- hack
@@ -7826,7 +7828,7 @@ plan_abyss_eatrest = cascade {
   {plan_go_to_abyss_exit, "try_go_to_abyss_exit"},
   {plan_abyss_hand, "abyss_hand"},
   {plan_abyss_rest, "rest"},
-  {plan_handle_corpses, "handle_corpses"},
+  {plan_handle_corpses, "try_handle_corpses"},
   {plan_find_corpses, "try_find_corpses"},
   {plan_eat_anyway, "eat_anyway"},
   {plan_go_down_abyss, "go_down_abyss"},
