@@ -15,7 +15,7 @@
 : DELAY_TIME = 125
 # whether to start playing immediately when a new game is started
 # unfortunately this doesn't work if the game starts with a -more-
-: AUTO_START = false
+: AUTO_START = true
 # experimental: do second lair rune branch before depths
 : EARLY_SECOND_RUNE = true
 # experimental: wait to do Orc until after D:15
@@ -40,7 +40,7 @@
 # panic (stop) at full inventory
 : FULL_INVENTORY_PANIC = true
 # Quit if we panic. Useful with batch testing
-: QUIT_ON_PANIC = false
+: QUIT_ON_PANIC = true
 # quit after this number of turns while stuck
 : QUIT_TURNS = 1000
 # use a shield at all cost
@@ -53,7 +53,7 @@
 # acceptable gods (join whichever one we find first)
 # gods who have been at least partially implemented: BCHLMOQRTUXY1
 # gods who are actually pretty decent on qw: CMORT
-: GOD_LIST = { "Trog", }
+: GOD_LIST = { "Trog", "Makhleb", "Ru" }
 # use faded altar, abandoning if we don't get one of the gods in GOD_LIST
 : FADED_ALTAR = false
 
@@ -66,7 +66,7 @@
 
 # Choose randomly between these combos. This will not apply if the COMBO_CYCLE
 # option was on in your _previous_ game.
-combo = GrBe.handaxe
+combo = DDFi.waraxe
 
 # For random berserkers, use these combos:
 #combo = CeBe.handaxe, DDBe.handaxe, DEBe.handaxe, DrBe.handaxe, DsBe.handaxe
