@@ -1512,6 +1512,7 @@ local res_func_table = {
   --MR=you.res_magic, -- (doesn't exist yet...)
 } --hack
 
+-- Return true if your XL is below lev and your resist is below value
 function check_resist(lev,resist,value)
   return function (m)
     return (you.xl() < lev and res_func_table[resist]() < value)
@@ -2486,6 +2487,7 @@ function sense_immediate_danger()
   return false
 end
 
+-- Is there danger within r tiles radius of us?
 function sense_danger(r, no_ignored)
   local e
   for _,e in ipairs(enemy_list) do
@@ -2536,6 +2538,8 @@ function update_monster_array()
   end
 end
 
+-- Are any of the monsters in mlist within r radius tiles of us and is their
+-- XL number greater than our XL?
 function check_monsters(r, mlist)
   local e
   local xl = you.xl()
