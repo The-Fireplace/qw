@@ -2306,7 +2306,8 @@ function can_hand()
   return (not (you.berserk() or you.confused() or you.silenced() or
           you.regenerating() or
           starving() or you.piety_rank() < 2 or
-          you.god() ~= "Trog"))
+          you.god() ~= "Trog" or
+          you.status("engulfed (cannot breathe)")))
 end
 
 function dd_heal_ability()
@@ -2333,12 +2334,14 @@ end
 function can_recite()
   return (not (you.berserk() or you.confused() or you.silenced() or
           starving() or you.status("reciting") or
+          you.status("engulfed (cannot breathe)") or
           you.piety_rank() < 1 or you.god() ~= "Zin"))
 end
 
 function can_ru_healing()
   return (not (you.berserk() or you.confused() or you.silenced() or
           starving() or you.exhausted() or you.piety_rank() < 3 or
+          you.status("engulfed (cannot breathe)") or
           you.god() ~= "Ru"))
 end
 
