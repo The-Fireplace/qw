@@ -33,6 +33,8 @@
 : ZIG_DIVE = 27
 # enable certain somewhat spammy notes
 : SPAM = false
+# log every plan executed
+: DEBUG_PLAN = false
 # tab just takes a single action (for testing)
 : SINGLE_STEP = false
 # panic (stop) at full inventory
@@ -7623,7 +7625,9 @@ function cascade(plans)
     for i, plandata in ipairs(plans) do
       plan = plandata[1]
       if you.turns() ~= plan_turns[plan] or plan_result[plan] == nil then
-        --say(plandata[2])
+        if DEBUG_PLAN then
+          say("Plan: " .. plandata[2])
+        end
         result = plan()
         if not automatic then
           return true
