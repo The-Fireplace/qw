@@ -5797,7 +5797,8 @@ function want_to_stairdance_up()
   end
   if you.caught() or you.mesmerised() or you.constricted() or you.rooted()
      or you.transform() == "tree" or you.transform() == "fungus"
-     or count_bia(3) > 0 or count_sgd(3) > 0 or count_divine_warrior(3) > 0 then
+     or count_bia(3) > 0 or count_sgd(3) > 0 or count_divine_warrior(3) > 0
+     or (you.status("barbed spikes") and you.hp()[1] < 15) then
     return false
   end
   local only_when_safe = (you.berserk() or hp_is_low(33))
@@ -5843,6 +5844,15 @@ function can_use_stairs(mname)
   end
 end
 
+-- Take the upstairs we are standing on
+function take_upstairs()
+  local command = "<"
+  if you.status("barbed spikes") then
+    magic("<Y")
+  end
+  magic("<")
+end
+
 function plan_stairdance_up()
   if want_to_stairdance_up() then
     expect_new_location = true
@@ -5852,7 +5862,7 @@ function plan_stairdance_up()
       travel_destination = cur_branch()
     end
     say("STAIRDANCE")
-    magic("<")
+    take_upstairs()
     return true
   end
   return false
