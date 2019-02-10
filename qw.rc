@@ -1489,7 +1489,7 @@ local portal_data = {
   --{"Volcano", "a dark tunnel", "volcano"},
   --{"WizLab", "a magical portal", "wizlab"},
   --{"Desolation", "ruined gateway", "desolation"},
-  --{"Lab", "labyrinth entrance", "labyrinth"},
+  --{"Gauntlet", "gauntlet entrance", "gauntlet"},
 } -- hack
 
 -- functions for use in the monster lists below
