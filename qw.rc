@@ -46,7 +46,7 @@
 # use a shield at all cost
 : SHIELD_CRAZY = true
 # Should we use might/haste potions more freely?
-: INCREASED_POTION_USE = true
+: INCREASED_POTION_USE = false
 # Should we dive Zot?
 : DIVE_ZOT = false
 
