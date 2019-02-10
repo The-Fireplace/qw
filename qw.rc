@@ -1509,7 +1509,7 @@ local res_func_table = {
   rElec=you.res_shock,
   rN=you.res_draining,
   rCorr=(function() return you.res_corr() and 1 or 0 end), -- returns a boolean
-  --MR=you.res_magic, -- (doesn't exist yet...)
+  MR=you.res_magic,
 } --hack
 
 -- Return true if your XL is below lev and your resist is below value
@@ -1827,26 +1827,26 @@ local ridiculous_uniques = {
 local hand_monsters = {
   ["*"] = {},
 
-  ["Grinder"] = 10,
+  ["Grinder"] = check_resist(6,"MR",2),
 
-  ["orc sorcerer"] = 17,
-  ["wizard"] = 17,
+  ["orc sorcerer"] = check_resist(8,"MR",3),
+  ["wizard"] = check_resist(8,"MR",3),
 
-  ["ogre mage"] = 100,
-  ["Rupert"] = 100,
+  ["ogre mage"] = check_resist(12,"MR",4),
+  ["Rupert"] = check_resist(12,"MR",4),
   ["Xtahua"] = 100,
   ["Aizul"] = 100,
-  ["Erolcha"] = 100,
-  ["Louise"] = 100,
+  ["Erolcha"] = check_resist(12,"MR",4),
+  ["Louise"] = check_resist(12,"MR",4),
   ["lich"] = 100,
-  ["ancient lich"] = 100,
+  ["ancient lich"] = check_resist(20,"MR",4),
   ["Kirke"] = 100,
-  ["golden eye"] = 100,
+  ["golden eye"] = check_resist(10,"MR",4),
   ["deep elf sorcerer"] = 100,
-  ["deep elf demonologist"] = 100,
-  ["sphinx"] = 100,
+  ["deep elf demonologist"] = check_resist(8,"MR",3),
+  ["sphinx"] = check_resist(12,"MR",4),
   ["great orb of eyes"] = 100,
-  ["vault sentinel"] = 100,
+  ["vault sentinel"] = check_resist(16,"MR",4),
   ["the Enchantress"] = 100,
   ["satyr"] = 100,
   ["vampire knight"] = 100,
