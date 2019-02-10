@@ -4540,6 +4540,7 @@ end
 
 function want_to_berserk()
   return (hp_is_low(50) and sense_danger(2) and
+          not you.hasted() and not you.mighted and
           (you.race() ~= "Deep Dwarf" or dd_want_to_heal_wounds()) or
           check_monsters(2, scary_monsters) or
           (invisi_sigmund and not options.autopick_on))
