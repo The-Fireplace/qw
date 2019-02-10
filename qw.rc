@@ -45,6 +45,8 @@
 : SHIELD_CRAZY = true
 # Should we use might/haste potions more freely?
 : INCREASED_POTION_USE = true
+# Should we dive Zot?
+: DIVE_ZOT = false
 
 # acceptable gods (join whichever one we find first)
 # gods who have been at least partially implemented: BCHLMOQRTUXY1
@@ -262,6 +264,7 @@ local did_first_turn = false
 local stairdance_count = {}
 local clear_exclusion_count = {}
 local v5_entry_turn
+local zot_levels_mapped = {}
 
 local last_swamp_fail_count = -1
 local swamp_rune_reachable = false
@@ -1316,7 +1319,7 @@ function want_scroll(it)
   if sub ~= "identify" and sub ~= "teleportation" and sub ~= "remove curse"
      and sub ~= "enchant weapon" and sub ~= "enchant armour"
      and sub ~= "acquirement" and sub ~= "recharging"
-     and sub ~= "brand weapon"
+     and sub ~= "brand weapon" and sub ~= "magic mapping"
      and (not WILL_ZIG or sub ~= "fog" and sub ~= "blinking") then
     return false
   end
@@ -5649,6 +5652,18 @@ function plan_upgrade_rings()
   return false
 end
 
+function plan_zot_magic_mapping()
+  if in_branch("Z") and zot_levels_mapped[you.where()] == nil
+      and count_item("scroll", "magic mapping") > 1 then
+    say("Magic Mapping Zot")
+    if read_by_name("magic mapping") then
+      zot_levels_mapped[you.where()] = true
+      return true
+    end
+  end
+  return false
+end
+
 function plan_maybe_upgrade_armour()
   if not upgrade_phase then
     return false
@@ -5994,6 +6009,14 @@ function plan_go_to_temple()
     return true
   end
   return false
+end
+
+function plan_dive_zot()
+  if in_branch("Z") and DIVE_ZOT then
+    return plan_go_down()
+  else
+    return false
+  end
 end
 
 function plan_enter_branch()
@@ -7706,14 +7729,15 @@ plan_pre_explore = cascade {
   {plan_bless_weapon, "bless_weapon"},
   {plan_upgrade_weapon, "upgrade_weapon"},
   {plan_maybe_upgrade_armour, "maybe_upgrade_armour"},
+  {plan_upgrade_armour, "upgrade_armour"},
+  {plan_upgrade_amulet, "upgrade_amulet"},
+  {plan_upgrade_rings, "upgrade_rings"},
   {plan_use_good_consumables, "use_good_consumables"},
+  {plan_zot_magic_mapping, "zot_magic_mapping"},
 } -- hack
 
 plan_pre_explore2 = cascade {
   {plan_disturbance_random_step, "disturbance_random_step"},
-  {plan_upgrade_armour, "upgrade_armour"},
-  {plan_upgrade_amulet, "upgrade_amulet"},
-  {plan_upgrade_rings, "upgrade_rings"},
   {plan_read_id, "try_read_id"},
   {plan_quaff_id, "quaff_id"},
   {plan_use_id_scrolls, "use_id_scrolls"},
@@ -7869,6 +7893,7 @@ plan_move = cascade {
   {plan_find_conversion_altar, "try_find_conversion_altar"},
   {plan_find_altar, "try_find_altar"},
   {plan_go_to_temple, "try_go_to_temple"},
+  {plan_dive_zot, "dive_zot"},
   {plan_explore, "explore"},
   {plan_pre_explore2, "pre_explore2"},
   {plan_explore2, "explore2"},
