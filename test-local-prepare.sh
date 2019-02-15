@@ -23,9 +23,8 @@ if ! [[ -x $crawl_source_dir/crawl ]]; then
   log "Building crawl"
   (
     cd "$crawl_source_dir"
-    make -j "$(nproc)"
+    make -j "ncpu"
   )
-  exit 1
 fi
 
 if ! [[ -x $crawl_source_dir/util/fake_pty ]]; then

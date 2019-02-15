@@ -46,7 +46,7 @@ log "Running qw"
 seq "$start_seed" "$((start_seed + num_runs - 1))" |
   parallel \
     --bar -n 1 -I {} \
-    --jobs 200% --limit "load $(($(sysctl -n hw.ncpu) * 5 / 4))" --delay 1s \
+    --jobs 200% --limit "load $((ncpu * 5 / 4))" --delay 1s \
     --timeout "1h" --termseq TERM,5000,KILL,100 \
     -- \
     "$crawl_source_dir/util/fake_pty" \
