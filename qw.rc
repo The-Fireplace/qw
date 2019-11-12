@@ -15,7 +15,7 @@
 : DELAY_TIME = 125
 # whether to start playing immediately when a new game is started
 # unfortunately this doesn't work if the game starts with a -more-
-: AUTO_START = false
+: AUTO_START = true
 # experimental: do second lair rune branch before depths
 : EARLY_SECOND_RUNE = true
 # experimental: wait to do Orc until after D:15
@@ -25,31 +25,37 @@
 # * nowater - does Snake/Spider first
 # * smart - currently prefers Spider > Snake/Swamp > Shoals
 # * dsmart - Swamp/Spider > Snake > Shoals (DsBe data)
-: RUNE_PREFERENCE = "random"
+: RUNE_PREFERENCE = "smart"
 # plan for post-V:5, should end with zot
 # maximal example: "tso,tomb,hells,pan,slime,abyss,zig,zot"
 : ENDGAME_PLAN = "zot"
 # depth to attempt to dive in ziggurats
 : ZIG_DIVE = 27
-# burn books with Trog, may theoretically cause navigation problems
-: BURN_BOOKS = true
 # enable certain somewhat spammy notes
 : SPAM = false
+# log every plan executed
+: DEBUG_PLAN = false
 # tab just takes a single action (for testing)
 : SINGLE_STEP = false
 # panic (stop) at full inventory
 : FULL_INVENTORY_PANIC = true
+# Quit if we panic. Useful with batch testing
+: QUIT_ON_PANIC = true
 # quit after this number of turns while stuck
 : QUIT_TURNS = 1000
 # use a shield at all cost
 : SHIELD_CRAZY = true
 # mutate as often as possible
 : MUTATE_CRAZY = true
+# Should we use might/haste potions more freely?
+: INCREASED_POTION_USE = false
+# Should we dive Zot?
+: DIVE_ZOT = false
 
 # acceptable gods (join whichever one we find first)
 # gods who have been at least partially implemented: BCHLMOQRTUXY1
 # gods who are actually pretty decent on qw: CMORT
-: GOD_LIST = { "Trog", "Qualzal", "Wu Jian", "Okawaru", "Dithmenos", "Gozag", "Hepliaklqana" }
+: GOD_LIST = { "Trog", "Qualzal", "Wu Jian", "Okawaru", "Dithmenos", "Gozag", "Hepliaklqana", "Makhleb", "Ru" }
 # use faded altar, abandoning if we don't get one of the gods in GOD_LIST
 : FADED_ALTAR = false
 
@@ -62,7 +68,7 @@
 
 # Choose randomly between these combos. This will not apply if the COMBO_CYCLE
 # option was on in your _previous_ game.
-combo = GrBe.handaxe
+combo = DDFi.waraxe
 
 # For random berserkers, use these combos:
 #combo = CeBe.handaxe, DDBe.handaxe, DEBe.handaxe, DrBe.handaxe, DsBe.handaxe
@@ -262,6 +268,7 @@ local did_first_turn = false
 local stairdance_count = {}
 local clear_exclusion_count = {}
 local v5_entry_turn
+local zot_levels_mapped = {}
 
 local last_swamp_fail_count = -1
 local swamp_rune_reachable = false
@@ -1302,7 +1309,7 @@ function want_potion(it)
   end
   if sub ~= "curing" and sub ~= "heal wounds" and sub ~= "haste"
      and sub ~= "resistance" and sub ~= "experience" and sub ~= "might"
-     and sub ~= "mutation" and sub ~= "cancellation" then
+     and sub ~= "mutation" and sub ~= "cancellation" and sub ~= "agility" then
     return false
   end
   return true
@@ -1316,7 +1323,7 @@ function want_scroll(it)
   if sub ~= "identify" and sub ~= "teleportation" and sub ~= "remove curse"
      and sub ~= "enchant weapon" and sub ~= "enchant armour"
      and sub ~= "acquirement" and sub ~= "recharging"
-     and sub ~= "brand weapon"
+     and sub ~= "brand weapon" and sub ~= "magic mapping"
      and (not WILL_ZIG or sub ~= "fog" and sub ~= "blinking") then
     return false
   end
@@ -1486,7 +1493,7 @@ local portal_data = {
   --{"Volcano", "a dark tunnel", "volcano"},
   --{"WizLab", "a magical portal", "wizlab"},
   --{"Desolation", "ruined gateway", "desolation"},
-  --{"Lab", "labyrinth entrance", "labyrinth"},
+  --{"Gauntlet", "gauntlet entrance", "gauntlet"},
 } -- hack
 
 -- functions for use in the monster lists below
@@ -1509,9 +1516,10 @@ local res_func_table = {
   rElec=you.res_shock,
   rN=you.res_draining,
   rCorr=(function() return you.res_corr() and 1 or 0 end), -- returns a boolean
-  --MR=you.res_magic, -- (doesn't exist yet...)
+  MR=you.res_magic,
 } --hack
 
+-- Return true if your XL is below lev and your resist is below value
 function check_resist(lev,resist,value)
   return function (m)
     return (you.xl() < lev and res_func_table[resist]() < value)
@@ -1826,26 +1834,26 @@ local ridiculous_uniques = {
 local hand_monsters = {
   ["*"] = {},
 
-  ["Grinder"] = 10,
+  ["Grinder"] = check_resist(6,"MR",2),
 
-  ["orc sorcerer"] = 17,
-  ["wizard"] = 17,
+  ["orc sorcerer"] = check_resist(8,"MR",3),
+  ["wizard"] = check_resist(8,"MR",3),
 
-  ["ogre mage"] = 100,
-  ["Rupert"] = 100,
+  ["ogre mage"] = check_resist(12,"MR",4),
+  ["Rupert"] = check_resist(12,"MR",4),
   ["Xtahua"] = 100,
   ["Aizul"] = 100,
-  ["Erolcha"] = 100,
-  ["Louise"] = 100,
+  ["Erolcha"] = check_resist(12,"MR",4),
+  ["Louise"] = check_resist(12,"MR",4),
   ["lich"] = 100,
-  ["ancient lich"] = 100,
+  ["ancient lich"] = check_resist(20,"MR",4),
   ["Kirke"] = 100,
-  ["golden eye"] = 100,
+  ["golden eye"] = check_resist(10,"MR",4),
   ["deep elf sorcerer"] = 100,
-  ["deep elf demonologist"] = 100,
-  ["sphinx"] = 100,
+  ["deep elf demonologist"] = check_resist(8,"MR",3),
+  ["sphinx"] = check_resist(12,"MR",4),
   ["great orb of eyes"] = 100,
-  ["vault sentinel"] = 100,
+  ["vault sentinel"] = check_resist(16,"MR",4),
   ["the Enchantress"] = 100,
   ["satyr"] = 100,
   ["vampire knight"] = 100,
@@ -2334,12 +2342,14 @@ end
 function can_recite()
   return (not (you.berserk() or you.confused() or you.silenced() or
           starving() or you.status("reciting") or
+          you.status("engulfed (cannot breathe)") or
           you.piety_rank() < 1 or you.god() ~= "Zin"))
 end
 
 function can_ru_healing()
   return (not (you.berserk() or you.confused() or you.silenced() or
           starving() or you.exhausted() or you.piety_rank() < 3 or
+          you.status("engulfed (cannot breathe)") or
           you.god() ~= "Ru"))
 end
 
@@ -2484,6 +2494,7 @@ function sense_immediate_danger()
   return false
 end
 
+-- Is there danger within r tiles radius of us?
 function sense_danger(r, no_ignored)
   local e
   for _,e in ipairs(enemy_list) do
@@ -2534,6 +2545,8 @@ function update_monster_array()
   end
 end
 
+-- Are any of the monsters in mlist within r radius tiles of us and is their
+-- XL number greater than our XL?
 function check_monsters(r, mlist)
   local e
   local xl = you.xl()
@@ -3400,6 +3413,14 @@ function buffed()
   return false
 end
 
+-- Do we have any buff active?
+function any_buff()
+  return you.mighty() or you.hasted() or
+    you.berserk() or transformed() or
+    you.status("heroism") or you.status("finesse")
+    -- TODO: complete
+end
+
 function should_ally_rest()
   if you.god() ~= "Yredelemnul" and you.god() ~= "Beogh" then
     return false
@@ -4230,6 +4251,24 @@ function plan_other_step()
   return false
 end
 
+-- We can't berserk, but we want a buff
+function plan_fallback_buff()
+  if not want_fallback_buff() then
+    return false
+  end
+  if drink_by_name("might") then
+    say("(Quaffed as a fallback buff.)")
+    return true
+  elseif drink_by_name("haste") then
+    say("(Quaffed as a fallback buff.)")
+    return true
+  elseif drink_by_name("agility") then
+    say("(Quaffed as a fallback buff.)")
+    return true
+  end
+  return false
+end
+
 function plan_berserk()
   if can_berserk() and want_to_berserk() then
     berserk()
@@ -4508,9 +4547,15 @@ end
 
 function want_to_berserk()
   return (hp_is_low(50) and sense_danger(2) and
+          not you.hasted() and not you.mighted and
           (you.race() ~= "Deep Dwarf" or dd_want_to_heal_wounds()) or
           check_monsters(2, scary_monsters) or
           (invisi_sigmund and not options.autopick_on))
+end
+
+function want_fallback_buff()
+  return INCREASED_POTION_USE and check_monsters(5, scary_monsters) and
+    not you.mighty() and not you.hasted() and not you.berserk()
 end
 
 function want_to_heroism()
@@ -4931,6 +4976,8 @@ function vp_handle_corpses()
   return true
 end
 
+-- Sometimes this function fails because we are standing on a corpse which
+-- hasn't been autoinscribed for some reason.
 function plan_handle_corpses()
   if not on_corpses() then
     return false
@@ -5150,7 +5197,7 @@ function plan_use_id_scrolls()
   local count = 0
   for it in inventory() do
     if it.class(true) == "wand" and not it.fully_identified and
-       (it.name():find("empty") or 
+       (it.name():find("empty") or
         it.name():find("digging")
         and (where:find("Depths") or where:find("Zot"))) then
       oldname = it.name()
@@ -5613,6 +5660,18 @@ function plan_upgrade_rings()
   return false
 end
 
+function plan_zot_magic_mapping()
+  if in_branch("Z") and zot_levels_mapped[you.where()] == nil
+      and count_item("scroll", "magic mapping") > 1 then
+    say("Magic Mapping Zot")
+    if read_by_name("magic mapping") then
+      zot_levels_mapped[you.where()] = true
+      return true
+    end
+  end
+  return false
+end
+
 function plan_maybe_upgrade_armour()
   if not upgrade_phase then
     return false
@@ -5746,7 +5805,8 @@ function want_to_stairdance_up()
   end
   if you.caught() or you.mesmerised() or you.constricted() or you.rooted()
      or you.transform() == "tree" or you.transform() == "fungus"
-     or count_bia(3) > 0 or count_sgd(3) > 0 or count_divine_warrior(3) > 0 then
+     or count_bia(3) > 0 or count_sgd(3) > 0 or count_divine_warrior(3) > 0
+     or (you.status("barbed spikes") and you.hp()[1] < 15) then
     return false
   end
   local only_when_safe = (you.berserk() or hp_is_low(33))
@@ -5792,6 +5852,15 @@ function can_use_stairs(mname)
   end
 end
 
+-- Take the upstairs we are standing on
+function take_upstairs()
+  local command = "<"
+  if you.status("barbed spikes") then
+    magic("<Y")
+  end
+  magic("<")
+end
+
 function plan_stairdance_up()
   if want_to_stairdance_up() then
     expect_new_location = true
@@ -5801,7 +5870,7 @@ function plan_stairdance_up()
       travel_destination = cur_branch()
     end
     say("STAIRDANCE")
-    magic("<")
+    take_upstairs()
     return true
   end
   return false
@@ -5958,6 +6027,14 @@ function plan_go_to_temple()
     return true
   end
   return false
+end
+
+function plan_dive_zot()
+  if in_branch("Z") and DIVE_ZOT then
+    return plan_go_down()
+  else
+    return false
+  end
 end
 
 function plan_enter_branch()
@@ -7630,7 +7707,9 @@ function cascade(plans)
     for i, plandata in ipairs(plans) do
       plan = plandata[1]
       if you.turns() ~= plan_turns[plan] or plan_result[plan] == nil then
-        --say(plandata[2])
+        if DEBUG_PLAN then
+          say("Plan: " .. plandata[2])
+        end
         result = plan()
         if not automatic then
           return true
@@ -7668,14 +7747,15 @@ plan_pre_explore = cascade {
   {plan_bless_weapon, "bless_weapon"},
   {plan_upgrade_weapon, "upgrade_weapon"},
   {plan_maybe_upgrade_armour, "maybe_upgrade_armour"},
+  {plan_upgrade_armour, "upgrade_armour"},
+  {plan_upgrade_amulet, "upgrade_amulet"},
+  {plan_upgrade_rings, "upgrade_rings"},
   {plan_use_good_consumables, "use_good_consumables"},
+  {plan_zot_magic_mapping, "zot_magic_mapping"},
 } -- hack
 
 plan_pre_explore2 = cascade {
   {plan_disturbance_random_step, "disturbance_random_step"},
-  {plan_upgrade_armour, "upgrade_armour"},
-  {plan_upgrade_amulet, "upgrade_amulet"},
-  {plan_upgrade_rings, "upgrade_rings"},
   {plan_read_id, "try_read_id"},
   {plan_quaff_id, "quaff_id"},
   {plan_use_id_scrolls, "use_id_scrolls"},
@@ -7716,6 +7796,7 @@ plan_emergency = cascade {
   {plan_might, "might"},
   {plan_blinking, "blinking"},
   {plan_berserk, "berserk"},
+  {plan_fallback_buff, "fallback_buff"},
   {plan_continue_flee, "continue_flee"},
   {plan_other_step, "other_step"},
 } -- hack
@@ -7742,7 +7823,7 @@ plan_eatrest = cascade {
   {plan_dd_hand_for_healing, "dd_hand_for_healing"},
   --{plan_easy_rest, "try_easy_rest"},
   {plan_rest, "rest"},
-  {plan_handle_corpses, "handle_corpses"},
+  {plan_handle_corpses, "try_handle_corpses"},
   {plan_find_corpses, "try_find_corpses"},
   {plan_eat_anyway, "eat_anyway"},
 } -- hack
@@ -7753,7 +7834,7 @@ plan_abyss_eatrest = cascade {
   {plan_go_to_abyss_exit, "try_go_to_abyss_exit"},
   {plan_abyss_hand, "abyss_hand"},
   {plan_abyss_rest, "rest"},
-  {plan_handle_corpses, "handle_corpses"},
+  {plan_handle_corpses, "try_handle_corpses"},
   {plan_find_corpses, "try_find_corpses"},
   {plan_eat_anyway, "eat_anyway"},
   {plan_go_down_abyss, "go_down_abyss"},
@@ -7830,6 +7911,7 @@ plan_move = cascade {
   {plan_find_conversion_altar, "try_find_conversion_altar"},
   {plan_find_altar, "try_find_altar"},
   {plan_go_to_temple, "try_go_to_temple"},
+  {plan_dive_zot, "dive_zot"},
   {plan_explore, "explore"},
   {plan_pre_explore2, "pre_explore2"},
   {plan_explore2, "explore2"},
@@ -8240,6 +8322,10 @@ end
 
 function panic(msg)
   crawl.mpr("<lightred>" .. msg .. "</lightred>")
+  if QUIT_ON_PANIC then
+    magic(control('q') .. "yes\r")
+    return true
+  end
   stop()
 end
 
