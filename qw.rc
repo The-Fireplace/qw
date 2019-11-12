@@ -47,8 +47,8 @@
 : SHIELD_CRAZY = true
 # mutate as often as possible
 : MUTATE_CRAZY = true
-# Panic upon reaching a floor. Use for getting the bot to a floor then continuing on your own.
-: PANIC_FLOOR = "Dungeon:7"
+# Stop upon reaching a floor.
+: STOP_FLOOR = "Dungeon:7"
 # Should we use might/haste potions more freely?
 : INCREASED_POTION_USE = false
 # Should we dive Zot?
@@ -5398,8 +5398,8 @@ function plan_use_good_consumables()
                  use_ability("Cure All Mutations", "Y") then
             return true
           end
-        elseif MUTATION_CRAZY then
-		  return true
+        elseif MUTATION_CRAZY and you.god() ~= "Zin" then
+		  return drink(it)
         end
       end
     end
@@ -5770,8 +5770,12 @@ function plan_go_down()
   if feat:find("stone_stairs_down") then
     expect_new_location = true
     magic(">")
-    if where == PANIC_FLOOR then
-      panic("Stopping, we have reached the target floor")
+    if you.where():find(STOP_FLOOR) then
+      --panic("Stopping, we have reached the target floor")
+      say("Stopping, we have reached the target floor")
+      stop();
+    else
+	  say(you.where());
     end
     return true
   end
