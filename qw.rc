@@ -19,7 +19,7 @@
 # experimental: do second lair rune branch before depths
 : EARLY_SECOND_RUNE = true
 # experimental: wait to do Orc until after D:15
-: LATE_ORC = true
+: LATE_ORC = false
 # lair rune preferences, current options are:
 # * random - no preference, chooses randomly
 # * nowater - does Snake/Spider first
@@ -40,13 +40,15 @@
 # panic (stop) at full inventory
 : FULL_INVENTORY_PANIC = true
 # Quit if we panic. Useful with batch testing
-: QUIT_ON_PANIC = true
+: QUIT_ON_PANIC = false
 # quit after this number of turns while stuck
 : QUIT_TURNS = 1000
 # use a shield at all cost
 : SHIELD_CRAZY = true
 # mutate as often as possible
 : MUTATE_CRAZY = true
+# Panic upon reaching a floor. Use for getting the bot to a floor then continuing on your own.
+: PANIC_FLOOR = "Dungeon:7"
 # Should we use might/haste potions more freely?
 : INCREASED_POTION_USE = false
 # Should we dive Zot?
@@ -5768,6 +5770,9 @@ function plan_go_down()
   if feat:find("stone_stairs_down") then
     expect_new_location = true
     magic(">")
+    if where == PANIC_FLOOR then
+      panic("Stopping, we have reached the target floor")
+    end
     return true
   end
   return false
