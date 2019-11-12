@@ -9,7 +9,7 @@
 ## qw's settings:
 #
 # Set this to true when playing online.
-: DELAYED = false
+: DELAYED = true
 # Delay per action in milliseconds.
 # Set this to at least 100 or so when playing online.
 : DELAY_TIME = 125
@@ -43,11 +43,13 @@
 : QUIT_TURNS = 1000
 # use a shield at all cost
 : SHIELD_CRAZY = true
+# mutate as often as possible
+: MUTATE_CRAZY = true
 
 # acceptable gods (join whichever one we find first)
 # gods who have been at least partially implemented: BCHLMOQRTUXY1
 # gods who are actually pretty decent on qw: CMORT
-: GOD_LIST = { "Trog", }
+: GOD_LIST = { "Trog", "Qualzal", "Wu Jian", "Okawaru", "Dithmenos", "Gozag", "Hepliaklqana" }
 # use faded altar, abandoning if we don't get one of the gods in GOD_LIST
 : FADED_ALTAR = false
 
@@ -95,7 +97,7 @@ combo = GrBe.handaxe
 #####################################
 # miscellaneous simple options
 
-name = qw
+name = *
 restart_after_game = false
 
 bold_brightens_foreground = true
@@ -5347,6 +5349,8 @@ function plan_use_good_consumables()
                  use_ability("Cure All Mutations", "Y") then
             return true
           end
+        elseif MUTATION_CRAZY then
+		  return true
         end
       end
     end
